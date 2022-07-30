@@ -13,11 +13,15 @@ environment which also happens to be a text editor! You can do almost what you c
 + Ditch your mouse and keep your wrists healthy with **powerful keybindings**
 + Use blazingly fast **vterm** terminal inside Emacs
 + Manage your files with **dired** file manager
++ Maintain your git repos effectively with **magit** and solve github issues with **forge** 
 + Save your RAM from electron bloat!
 
 # Instructions
 Just copy the init.el file to your .emacs.d directory ( probably it is located in your home directory). The configuration works on Linux, it will probably also work
-on macOS, but not on Windows. You can also refile the init.el file from emacs.org document. 
+on macOS, but not on Windows. You can also tangle the init.el file from emacs.org document.
+
+# Note
+In order to use lsp-mode functionality, you have to install language servers for your [programming language](https://emacs-lsp.github.io/lsp-mode/page/languages/) 
 
 ![image](https://user-images.githubusercontent.com/59435262/181731350-7747326d-33b4-4ed8-98ca-1ba66ad2f8ed.png)
 
