@@ -387,9 +387,6 @@
       :after lsp-mode)
 
 #+end_src
-
-#+RESULTS:
-
 ***** Company mode
 #+begin_src emacs-lisp
 
@@ -408,7 +405,6 @@
     :hook (company-mode . company-box-mode))
 #+end_src
 
-
 ***** C/C++
 
 #+begin_src emacs-lisp
@@ -416,13 +412,16 @@
   (add-hook 'c++-mode-hook #'lsp-deferred)
 #+end_src
 
-***** TypeScript
+***** TypeScript / JavaScript
 #+begin_src emacs-lisp
   (use-package typescript-mode
   :mode "\\.ts\\'"
   :hook (typescript-mode . lsp-deferred)
   :custom
   (typescript-indent-level 2))
+
+  (add-hook 'js-mode-hook #'lsp-deferred)
+  
 #+end_src
 
 ** Nerd commenter
@@ -512,6 +511,27 @@
     (auto-package-update-hide-results t)
     :config
     (auto-package-update-maybe))
+#+end_src
+
+** Treesitter for syntax highlighting
+#+begin_src emacs-lisp
+      (use-package tree-sitter
+        :hook (lsp-mode . tree-sitter-mode)
+        :config
+        (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+      (use-package tree-sitter-langs
+        :after tree-sitter)
+#+end_src
+
+** Syntax checking with flycheck
+#+begin_src emacs-lisp
+
+(use-package flycheck
+  :ensure t
+  :hook (lsp-mode . flycheck-mode)
+  :custom
+  (flycheck-javascript-standard-executable "~/.local/share/npm/bin/standard"))
+
 #+end_src
 
 * Keeping directories clean

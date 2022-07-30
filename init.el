@@ -347,6 +347,8 @@
 :custom
 (typescript-indent-level 2))
 
+(add-hook 'js-mode-hook #'lsp-deferred)
+
 (use-package evil-nerd-commenter
   :bind ("M-/" . evilnc-comment-or-uncomment-lines))
 
@@ -418,6 +420,19 @@
   (auto-package-update-hide-results t)
   :config
   (auto-package-update-maybe))
+
+(use-package tree-sitter
+  :hook (lsp-mode . tree-sitter-mode)
+  :config
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+(use-package tree-sitter-langs
+  :after tree-sitter)
+
+(use-package flycheck
+  :ensure t
+  :hook (lsp-mode . flycheck-mode)
+  :custom
+  (flycheck-javascript-standard-executable "~/.local/share/npm/bin/standard"))
 
 (setq user-emacs-directory "~/.cache/emacs")
  (use-package no-littering)
