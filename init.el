@@ -23,8 +23,8 @@
 ;; Setting up packages
 (require 'package)
 (setq package-archives '(("melpa". "https://melpa.org/packages/")
-			 ("org"  . "https://orgmode.org/elpa/")
-			 ("elpa" . "https://elpa.gnu.org/packages/")))
+                         ("org"  . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
 (package-initialize)
 (unless package-archive-contents
   (package-refresh-contents))
@@ -63,21 +63,23 @@
 
   ;; ivy rich
   (use-package ivy-rich
+    :after ivy
     :config
     (ivy-rich-mode 1))
+
+;; all-the-icons
+(use-package all-the-icons)
 
 ;; Setting up doom-modeline
 (use-package doom-modeline
   :ensure t
-  :init (doom-modeline-mode 1))
+  :config
+  (doom-modeline-mode 1))
 
 ;; doom themes
 (use-package doom-themes
   :init
-  (load-theme 'doom-city-lights t)) ;; loading the theme  
-
-;; all-the-icons
-(use-package all-the-icons)
+  (load-theme 'doom-city-lights t)) ;; loading the theme
 
 ;; Rainbow parantheses
 (use-package rainbow-delimiters
@@ -85,13 +87,15 @@
 
 ;; Which-key integration
 (use-package which-key
-  :init (which-key-mode)
   :diminish which-key-mode
+  :defer 0
   :config
-  (setq which-key-idle-delay 0.3))
+  (setq which-key-idle-delay 0.3)
+  (which-key-mode))
 
 ;; helpful
 (use-package helpful
+    :commands (helpful-callable helpful-variable helpful-command helpful-key)
     :custom
     (counsel-describe-function-function #'helpful-callable)
     (counsel-describe-variable-function #'helpful-variable)
@@ -128,16 +132,18 @@
 
 ;; hydra
 
-(use-package hydra)
-
-(defhydra hydra-text-scale (:timeout 4)
+(use-package hydra
+  :defer t
+  :config
+  (defhydra hydra-text-scale (:timeout 4)
   "scale text"
   ("j" text-scale-increase "in")
   ("k" text-scale-decrease "out")
-  ("f" nil "finished" :exit t))
+  ("f" nil "finished" :exit t)))
 
 ;; general
 (use-package general
+  :after evil
   :config 
   (general-evil-setup 1)
   (general-create-definer ez/leader-keys
@@ -150,6 +156,7 @@
 (use-package projectile
   :diminish projectile-mode
   :config (projectile-mode)
+  :defer t
   :bind-keymap
   ("C-c p" . projectile-command-map)
   :init
@@ -159,11 +166,13 @@
 
 ; counsel-projectile
 (use-package counsel-projectile
+  :after projectile
   :config (counsel-projectile-mode))
 
 ;; magit
 
 (use-package magit
+  :commands magit-status
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
@@ -172,10 +181,17 @@
 (use-package forge
   :config
   (setq auth-sources '("~/.authinfo"))
-  :after magit
-  )
+  :custom
+  (forge-add-default-bindings nil)
+  :after magit)
 
 ;; org-mode
+
+
+ (use-package org
+   :hook (org-mode . ez/org-mode-setup)
+   :config
+
  (defun ez/org-mode-setup ()
    (org-indent-mode)
    (variable-pitch-mode 1)
@@ -205,9 +221,6 @@
    (set-face-attribute 'line-number nil :inherit 'fixed-pitch)
    (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch))
 
- (use-package org
-   :hook (org-mode . ez/org-mode-setup)
-   :config
    (setq org-ellipsis " ▼"
          org-hide-emphasis-markers t)
    (ez/org-setup-faces)
@@ -228,22 +241,15 @@
          ("tasks.org" :maxlevel . 1)))
    )))
 
- ;; Save org buffers after refiling
- (advice-add 'org-refile :after 'org-save-all-org-buffers)
 
  (use-package org-bullets
-   :after org
    :hook (org-mode . org-bullets-mode)
    :custom
    (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
- (require 'org-habit)
- (add-to-list 'org-modules 'org-habit)
- (setq org-habit-graph-column 60)
 
- ; org-babel
-
- (org-babel-do-load-languages
+ (with-eval-after-load 'org
+   (org-babel-do-load-languages
   'org-babel-load-languages
   '((emacs-lisp . t)
     (C . t)
@@ -261,30 +267,39 @@
  (add-to-list 'org-structure-template-alist '("css" . "src css"))
  (add-to-list 'org-structure-template-alist '("sql" . "src sql"))
 
+ (require 'org-habit)
+ (add-to-list 'org-modules 'org-habit)
+ (setq org-habit-graph-column 60)
+ ;; Save org buffers after refiling
+ (advice-add 'org-refile :after 'org-save-all-org-buffers))
+
  ; visual-fill-column
 
- (defun ez/org-mode-visual-fill ()
+
+ (use-package visual-fill-column
+   :config
+   (defun ez/org-mode-visual-fill ()
    (setq visual-fill-column-width 100
          visual-fill-column-center-text t)
    (visual-fill-column-mode 1))
-
- (use-package visual-fill-column
+   (defun ez/org-babel-tangle-config ()
+     (when (string-equal (buffer-file-name)
+                         (expand-file-name "~/.config/emacs/emacs.org"))
+       (let ((org-confirm-babel-evaluate nil))
+         (org-babel-tangle))))
+   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'ez/org-babel-tangle-config)))
    :hook (org-mode . ez/org-mode-visual-fill))
 
    ;; Automatically tangle babel.org when we save it
- (defun ez/org-babel-tangle-config ()
-   (when (string-equal (buffer-file-name)
-                       (expand-file-name "~/.config/emacs/emacs.org"))
-     (let ((org-confirm-babel-evaluate nil))
-       (org-babel-tangle))))
-   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'ez/org-babel-tangle-config)))
 
 (use-package yasnippet
   :hook (lsp-mode . yas-minor-mode)
   :config
   (yas-reload-all))
-(use-package yasnippet-snippets)
-(use-package ivy-yasnippet)
+(use-package yasnippet-snippets
+  :after yasnippet)
+(use-package ivy-yasnippet
+  :after yasnippet)
 
 (defun ez/lsp-mode-setup()
   (lsp-headerline-breadcrumb-mode))
@@ -306,7 +321,8 @@
   :config
   (treemacs-load-theme "doom-city-lights"))
 
-(use-package lsp-ivy)
+(use-package lsp-ivy
+  :after lsp-mode)
 
 (use-package company
   :after lsp-mode
@@ -377,11 +393,13 @@
     "h" 'dired-single-up-directory
     "l" 'dired-single-buffer))
 
-(use-package dired-single)
+(use-package dired-single
+  :commands (dired dired-jump))
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package dired-open
+  :commands (dired dired-jump)
   :custom
   (dired-open-extensions '(("png" . "sxiv")
                            ("jpg" . "sxiv")
@@ -393,12 +411,22 @@
     "H" 'dired-hide-dotfiles-mode))
 
 (use-package auto-package-update
+  :defer 2
   :custom
   (auto-package-update-interval 7)
   (auto-package-update-prompt-before-update t)
   (auto-package-update-hide-results t)
   :config
   (auto-package-update-maybe))
+
+(setq user-emacs-directory "~/.cache/emacs")
+ (use-package no-littering)
+
+(setq auto-save-file-name-transforms
+       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+
+(use-package gcmh
+  :config (gcmh-mode 1))
 
 ;; KEYBINDINGS
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
