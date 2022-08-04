@@ -323,6 +323,7 @@
 
 (use-package lsp-ivy
   :after lsp-mode)
+(add-hook 'prog-mode-hook 'electric-pair-mode)
 
 (use-package company
   :after lsp-mode
@@ -348,6 +349,11 @@
 (typescript-indent-level 2))
 
 (add-hook 'js-mode-hook #'lsp-deferred)
+(setq js-indent-level 2)
+
+(use-package emmet-mode
+  :hook (html-mode-hook . emmet-mode))
+(add-hook 'html-mode-hook #'lsp-deferred)
 
 (use-package evil-nerd-commenter
   :bind ("M-/" . evilnc-comment-or-uncomment-lines))
@@ -358,6 +364,9 @@
   :config
   (dashboard-setup-startup-hook)
   :custom
+  (dashboard-items '((recents . 5)
+                     (projects . 5)
+                     (agenda . 5)))
   (dashboard-startup-banner 'logo))
 
 (use-package vterm
@@ -433,6 +442,10 @@
   :hook (lsp-mode . flycheck-mode)
   :custom
   (flycheck-javascript-standard-executable "~/.local/share/npm/bin/standard"))
+
+(use-package format-all
+  :hook (lsp-mode . format-all-mode)
+  )
 
 (setq user-emacs-directory "~/.cache/emacs")
  (use-package no-littering)
